@@ -1,7 +1,7 @@
 // 加载环境变量
 const dotenv = require('dotenv')
 dotenv.config()
-const { port = 9023 } = process.env
+const { port = 8023 } = process.env
 // 导入 express 包
 const express = require('express')
 // 实例化 express 对象 application 应用
