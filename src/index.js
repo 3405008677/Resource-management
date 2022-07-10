@@ -4,13 +4,11 @@ dotenv.config()
 const { port = 8023 } = process.env
 // 导入 express 包
 const express = require('express')
-// 文件路径
-const { resolve } = require('path')
 // 实例化 express 对象 application 应用
 const app = express()
 // 静态文件处理
 app.use(express.static('public'))
-app.use(express.static(resolve(__dirname, 'public'), { index: 'index.html' }))
+app.use(express.static(__dirname + '/public', { index: 'index.html' }))
 // 解析 body
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
