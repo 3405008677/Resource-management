@@ -1,18 +1,32 @@
 {
-  "name": "sever",
+  "name": "resource-server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "靜態資源服務器 - 提供圖片、音頻等資源文件服務",
+  "main": "src/index.js",
   "scripts": {
+    "start": "node src/index.js",
     "dev": "nodemon --watch src src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "express",
+    "static",
+    "resource",
+    "server"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
-    "path": "^0.12.7"
+    "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
   }
 }

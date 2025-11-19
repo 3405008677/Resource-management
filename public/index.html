@@ -1,12 +1,252 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Resource Server - 資源服務器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 800px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 2.5em;
+    }
+    
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 1.1em;
+    }
+    
+    .status {
+      display: inline-block;
+      padding: 8px 16px;
+      background: #10b981;
+      color: white;
+      border-radius: 20px;
+      font-size: 0.9em;
+      margin-bottom: 30px;
+    }
+    
+    .section {
+      margin-bottom: 30px;
+    }
+    
+    .section h2 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 1.5em;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+    
+    .endpoint {
+      background: #f7f7f7;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border-left: 4px solid #667eea;
+    }
+    
+    .endpoint code {
+      background: #e5e7eb;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      color: #dc2626;
+      font-size: 0.9em;
+    }
+    
+    .endpoint .method {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #667eea;
+      color: white;
+      border-radius: 4px;
+      font-size: 0.8em;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+    
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+    
+    .info-item {
+      background: #f7f7f7;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    
+    .info-item strong {
+      display: block;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      color: #666;
+      font-size: 0.9em;
+    }
+    
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+      
+      h1 {
+        font-size: 2em;
+      }
+    }
+  </style>
 </head>
 <body>
-  <p>资源文件地址</p>
+  <div class="container">
+    <h1>🚀 Resource Server</h1>
+    <p class="subtitle">靜態資源服務器</p>
+    <span class="status" id="status">檢查中...</span>
+    
+    <div class="section">
+      <h2>📋 API 端點</h2>
+      <div class="endpoint">
+        <span class="method">GET</span>
+        <code>/health</code>
+        <p style="margin-top: 8px; color: #666;">健康檢查端點，返回服務器狀態</p>
+      </div>
+      <div class="endpoint">
+        <span class="method">GET</span>
+        <code>/api/info</code>
+        <p style="margin-top: 8px; color: #666;">獲取服務器信息和可用端點</p>
+      </div>
+      <div class="endpoint">
+        <span class="method">GET</span>
+        <code>/image/**</code>
+        <p style="margin-top: 8px; color: #666;">訪問圖片資源文件</p>
+      </div>
+      <div class="endpoint">
+        <span class="method">GET</span>
+        <code>/audio/**</code>
+        <p style="margin-top: 8px; color: #666;">訪問音頻資源文件</p>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>ℹ️ 服務器信息</h2>
+      <div class="info-grid" id="serverInfo">
+        <div class="info-item">
+          <strong>名稱</strong>
+          <span id="serverName">載入中...</span>
+        </div>
+        <div class="info-item">
+          <strong>版本</strong>
+          <span id="serverVersion">載入中...</span>
+        </div>
+        <div class="info-item">
+          <strong>環境</strong>
+          <span id="serverEnv">載入中...</span>
+        </div>
+        <div class="info-item">
+          <strong>運行時間</strong>
+          <span id="serverUptime">載入中...</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>Resource Server v1.0.0</p>
+    </div>
+  </div>
+  
+  <script>
+    // 檢查服務器狀態
+    async function checkHealth() {
+      try {
+        const response = await fetch('/health');
+        const data = await response.json();
+        const statusEl = document.getElementById('status');
+        if (data.status === 'ok') {
+          statusEl.textContent = '✓ 服務器運行正常';
+          statusEl.style.background = '#10b981';
+        } else {
+          statusEl.textContent = '✗ 服務器異常';
+          statusEl.style.background = '#ef4444';
+        }
+      } catch (error) {
+        const statusEl = document.getElementById('status');
+        statusEl.textContent = '✗ 無法連接到服務器';
+        statusEl.style.background = '#ef4444';
+      }
+    }
+    
+    // 獲取服務器信息
+    async function getServerInfo() {
+      try {
+        const response = await fetch('/api/info');
+        const data = await response.json();
+        document.getElementById('serverName').textContent = data.name || 'N/A';
+        document.getElementById('serverVersion').textContent = data.version || 'N/A';
+        document.getElementById('serverEnv').textContent = data.environment || 'N/A';
+      } catch (error) {
+        console.error('獲取服務器信息失敗:', error);
+      }
+    }
+    
+    // 獲取運行時間
+    async function getUptime() {
+      try {
+        const response = await fetch('/health');
+        const data = await response.json();
+        if (data.uptime) {
+          const hours = Math.floor(data.uptime / 3600);
+          const minutes = Math.floor((data.uptime % 3600) / 60);
+          const seconds = Math.floor(data.uptime % 60);
+          document.getElementById('serverUptime').textContent = 
+            `${hours}時 ${minutes}分 ${seconds}秒`;
+        }
+      } catch (error) {
+        document.getElementById('serverUptime').textContent = 'N/A';
+      }
+    }
+    
+    // 初始化
+    checkHealth();
+    getServerInfo();
+    getUptime();
+    
+    // 每30秒更新一次運行時間
+    setInterval(() => {
+      getUptime();
+    }, 30000);
+  </script>
 </body>
 </html>

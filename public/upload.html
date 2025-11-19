@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文件管理系统 - Resource Server</title>
+  <style>
+    :root {
+      --primary-color: #667eea;
+      --primary-hover: #5568d3;
+      --success-color: #10b981;
+      --success-hover: #059669;
+      --danger-color: #ef4444;
+      --danger-hover: #dc2626;
+      --secondary-color: #6b7280;
+      --secondary-hover: #4b5563;
+      --bg-color: #f5f7fa;
+      --card-bg: #fafbfc;
+      --border-color: #e0e0e0;
+      --text-primary: #333;
+      --text-secondary: #666;
+      --text-muted: #888;
+      --icon-size: 150px;
+      --border-radius: 8px;
+      --transition: all 0.3s;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg-color);
+      min-height: 100vh;
+      color: var(--text-primary);
+    }
+    
+    .header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 30px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    .header p {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+    
+    .main-container {
+      display: flex;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+      gap: 20px;
+    }
+    
+    .sidebar {
+      width: 280px;
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      height: fit-content;
+      position: sticky;
+      top: 20px;
+    }
+    
+    .content {
+      flex: 1;
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    
+    .form-group select,
+    .form-group input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      transition: var(--transition);
+      background: #fafafa;
+    }
+    
+    .form-group select:focus,
+    .form-group input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .upload-zone {
+      border: 2px dashed #d0d7de;
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      background: #fafbfc;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-bottom: 15px;
+    }
+    
+    .upload-zone:hover {
+      border-color: var(--primary-color);
+      background: #f0f4ff;
+    }
+    
+    .upload-zone.dragover {
+      border-color: var(--primary-color);
+      background: #e8edff;
+      transform: scale(1.02);
+    }
+    
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+      opacity: 0.6;
+      transition: opacity 0.3s;
+    }
+    
+    .upload-zone:hover .upload-icon {
+      opacity: 1;
+    }
+    
+    .upload-text {
+      font-size: 15px;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    
+    .upload-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    
+    .btn-primary {
+      background: var(--primary-color);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-success {
+      background: var(--success-color);
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background: var(--success-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-danger {
+      background: var(--danger-color);
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: var(--danger-hover);
+    }
+    
+    .btn-secondary {
+      background: var(--secondary-color);
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background: var(--secondary-hover);
+    }
+    
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    
+    .btn-block {
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .create-folder-form {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .create-folder-form input {
+      flex: 1;
+    }
+    
+    .alert {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      padding: 12px 24px;
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      z-index: 10001;
+      min-width: 300px;
+      max-width: 90%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .alert.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    .alert-success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid var(--success-color);
+    }
+    
+    .alert-error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid var(--danger-color);
+    }
+    
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #f8f9fa;
+      border-radius: var(--border-radius);
+    }
+    
+    .breadcrumb-item {
+      color: var(--primary-color);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    .breadcrumb-item:hover {
+      background: #e0e7ff;
+    }
+    
+    .breadcrumb-separator {
+      color: var(--text-muted);
+      margin: 0 4px;
+    }
+    
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    
+    .toolbar-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .checkbox-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    .checkbox-wrapper input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--primary-color);
+    }
+    
+    .file-card {
+      position: relative;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px;
+      transition: var(--transition);
+      cursor: pointer;
+      overflow: hidden;
+    }
+    
+    .file-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      border-color: var(--primary-color);
+    }
+    
+    .file-card.selected {
+      border-color: var(--primary-color);
+      background: #f0f4ff;
+    }
+    
+    .file-card.folder {
+      background: linear-gradient(135deg, #fff5e6 0%, #ffe8cc 100%);
+      border-color: #ffd89b;
+    }
+    
+    .file-card.folder:hover {
+      border-color: #ffb84d;
+    }
+    
+    .file-checkbox {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      width: 20px;
+      height: 20px;
+      z-index: 10;
+      cursor: pointer;
+      accent-color: var(--primary-color);
+    }
+    
+    .category-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      background: #f8f9fa;
+      padding: 4px;
+      border-radius: var(--border-radius);
+    }
+    
+    .category-tab {
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: var(--transition);
+      border: none;
+      background: #f0f0f0;
+      color: var(--text-secondary);
+      width: 100%;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    
+    .category-tab:hover {
+      background: #e8e8e8;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    
+    .category-tab.active {
+      background: white;
+      color: var(--primary-color);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+      font-weight: 600;
+    }
+    
+    .file-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+    }
+    
+    .file-icon {
+      font-size: 48px;
+      text-align: center;
+      margin-bottom: 12px;
+      width: var(--icon-size);
+      height: var(--icon-size);
+      max-width: var(--icon-size);
+      max-height: var(--icon-size);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 6px;
+      background: #f0f0f0;
+    }
+    
+    .file-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    
+    .file-icon img:hover {
+      transform: scale(1.05);
+    }
+    
+    .file-card.image-card .file-icon {
+      padding: 0;
+      background: transparent;
+    }
+    
+    .file-card.audio-card .file-icon,
+    .file-card.video-card .file-icon {
+      padding: 10px;
+      background: #f8f9fa;
+    }
+    
+    .file-card.audio-card audio {
+      width: 100%;
+      max-width: 100%;
+      max-height: 130px;
+      outline: none;
+    }
+    
+    .file-card.video-card video {
+      width: 100%;
+      max-width: 100%;
+      height: 100%;
+      max-height: 130px;
+      outline: none;
+      object-fit: contain;
+    }
+    
+    .file-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      word-break: break-all;
+      text-align: center;
+      line-height: 1.4;
+      max-height: 36px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    
+    .file-info {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    
+    .file-actions {
+      display: flex;
+      gap: 6px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .file-card:hover .file-actions {
+      opacity: 1;
+    }
+    
+    .file-actions button {
+      flex: 1;
+      font-size: 11px;
+      padding: 6px 8px;
+      text-align: center;
+      justify-content: center;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    
+    .empty-state-text {
+      font-size: 14px;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--primary-color);
+      font-size: 14px;
+    }
+    
+    .current-path {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: #f0f0f0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      word-break: break-all;
+    }
+    
+    /* 媒体预览弹窗 */
+    .image-preview-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    
+    .image-preview-modal.show {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .image-preview-content {
+      max-width: 90%;
+      max-height: 90%;
+      position: relative;
+      animation: zoomIn 0.3s ease;
+    }
+    
+    @keyframes zoomIn {
+      from { transform: scale(0.8); }
+      to { transform: scale(1); }
+    }
+    
+    .image-preview-content img,
+    .image-preview-content video {
+      max-width: 100%;
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: var(--border-radius);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+    
+    .image-preview-content audio {
+      border-radius: var(--border-radius);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+    }
+    
+    #previewContent {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .image-preview-close {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      color: white;
+      font-size: 32px;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+    
+    .image-preview-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: rotate(90deg);
+    }
+    
+    .image-preview-info {
+      position: absolute;
+      bottom: -50px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      text-align: center;
+      font-size: 14px;
+    }
+    
+    @media (max-width: 968px) {
+      .main-container {
+        flex-direction: column;
+      }
+      
+      .sidebar {
+        width: 100%;
+        position: static;
+      }
+      
+      .file-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      }
+      
+      .file-icon {
+        width: var(--icon-size);
+        height: var(--icon-size);
+        max-width: var(--icon-size);
+        max-height: var(--icon-size);
+      }
+      
+      .file-card.audio-card .file-icon,
+      .file-card.video-card .file-icon,
+      .file-card.image-card .file-icon,
+      .file-card.folder .file-icon {
+        width: var(--icon-size);
+        height: var(--icon-size);
+        max-width: var(--icon-size);
+        max-height: var(--icon-size);
+      }
+      
+      .file-card.audio-card audio,
+      .file-card.video-card video {
+        max-height: 130px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📁 文件管理系统</h1>
+    <p>上传、下载和管理您的资源文件</p>
+  </div>
+  
+  <div id="alert" class="alert"></div>
+  
+  <div class="main-container">
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+      <div class="section-title">操作面板</div>
+      
+      <div class="form-group">
+        <label>文件分类</label>
+        <div class="category-tabs" id="categoryTabs">
+          <div class="loading">加载分类中...</div>
+        </div>
+        <button class="btn btn-secondary btn-block btn-small" onclick="showAddCategoryForm()" style="margin-top: 10px;">
+          <span>➕</span> 添加分类
+        </button>
+      </div>
+      
+      <!-- 添加分类表单 -->
+      <div class="form-group" id="addCategoryForm" style="display: none; background: #f8f9fa; padding: 15px; border-radius: var(--border-radius); margin-top: 10px;">
+        <label style="font-weight: 600; margin-bottom: 10px;">添加新分类</label>
+        <input type="text" id="categoryKey" placeholder="分类键（英文，如：document）" style="margin-bottom: 8px;">
+        <input type="text" id="categoryName" placeholder="分类名称（中文，如：文档）" style="margin-bottom: 8px;">
+        <input type="text" id="categoryIcon" placeholder="图标（emoji，如：📄）" style="margin-bottom: 8px;">
+        <input type="text" id="categoryHint" placeholder="提示信息（如：支持 PDF, DOC, DOCX 等文档格式）" style="margin-bottom: 8px;">
+        <input type="text" id="categoryExtensions" placeholder="文件扩展名（用逗号分隔，如：pdf,doc,docx，留空表示允许所有）" style="margin-bottom: 10px;">
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-success btn-small" onclick="addCategory()" style="flex: 1;">
+            <span>✓</span> 确认添加
+          </button>
+          <button class="btn btn-secondary btn-small" onclick="hideAddCategoryForm()" style="flex: 1;">
+            <span>✕</span> 取消
+          </button>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>当前路径</label>
+        <div class="current-path" id="currentPath">根目录</div>
+      </div>
+      
+      <div class="form-group">
+        <label>上传文件</label>
+        <div class="upload-zone" id="uploadZone">
+          <div class="upload-icon">📤</div>
+          <div class="upload-text">点击选择或拖拽文件</div>
+          <div class="upload-hint" id="uploadHint">支持 JPG, PNG, GIF, WebP, SVG 等图片格式</div>
+        </div>
+        <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(event)">
+        <button class="btn btn-primary btn-block" onclick="uploadFile()">
+          <span>📤</span> 上传文件
+        </button>
+      </div>
+      
+      <div class="form-group">
+        <label>创建文件夹</label>
+        <div class="create-folder-form">
+          <input type="text" id="folderName" placeholder="文件夹名称">
+          <button class="btn btn-success" onclick="createFolder()">
+            <span>➕</span>
+          </button>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="content">
+      <div class="toolbar">
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <div class="toolbar-actions">
+          <label class="checkbox-wrapper">
+            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+            <span>全选</span>
+          </label>
+          <button class="btn btn-danger btn-small" id="batchDeleteBtn" onclick="batchDelete()" style="display: none;">
+            <span>🗑️</span> 批量删除
+          </button>
+        </div>
+      </div>
+      
+      <div id="fileList" class="file-grid">
+        <div class="loading">加载中...</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 媒体预览弹窗 -->
+  <div class="image-preview-modal" id="mediaPreviewModal" onclick="closeMediaPreview()">
+    <div class="image-preview-content" onclick="event.stopPropagation()">
+      <div class="image-preview-close" onclick="closeMediaPreview()">×</div>
+      <div id="previewContent">
+        <img id="previewImage" src="" alt="预览图片" style="display: none;">
+        <audio id="previewAudio" controls style="display: none; width: 100%; max-width: 600px;"></audio>
+        <video id="previewVideo" controls style="display: none; width: 100%; max-width: 90vw; max-height: 90vh;"></video>
+      </div>
+      <div class="image-preview-info" id="previewInfo"></div>
+    </div>
+  </div>
+  
+  <script>
+    // 分类配置（从服务器获取）
+    let CATEGORIES = []
+    let CATEGORY_CONFIG = {}
+    let FILE_EXTENSIONS = {}
+    
+    // 状态管理
+    let currentCategory = ''
+    let currentFolderPath = ''
+    let selectedFile = null
+    
+    // DOM 元素缓存
+    const elements = {
+      uploadHint: null,
+      fileList: null,
+      breadcrumb: null,
+      currentPath: null,
+      selectAll: null,
+      batchDeleteBtn: null,
+      alert: null,
+      fileInput: null,
+      folderName: null,
+      uploadZone: null,
+      categoryTabs: null
+    }
+    
+    // 初始化
+    document.addEventListener('DOMContentLoaded', async () => {
+      initElements()
+      await loadCategories()
+      setupUploadZone()
+      loadFiles()
+    })
+    
+    // 从服务器加载分类配置
+    async function loadCategories() {
+      try {
+        const response = await fetch('/api/categories')
+        const data = await response.json()
+        
+        if (data.success && data.categories && data.categories.length > 0) {
+          CATEGORIES = data.categories
+          
+          // 构建分类配置映射
+          CATEGORIES.forEach(category => {
+            CATEGORY_CONFIG[category.key] = {
+              name: category.name,
+              icon: category.icon,
+              hint: category.hint
+            }
+            FILE_EXTENSIONS[category.key] = category.extensions || []
+          })
+          
+          // 设置默认分类为第一个
+          currentCategory = CATEGORIES[0].key
+          
+          // 渲染分类标签
+          renderCategoryTabs()
+          
+          // 更新上传提示
+          updateUploadHint()
+        } else {
+          showAlert('加载分类配置失败', 'error')
+        }
+      } catch (error) {
+        console.error('加载分类配置失败:', error)
+        showAlert('加载分类配置失败: ' + error.message, 'error')
+      }
+    }
+    
+    // 渲染分类标签
+    function renderCategoryTabs() {
+      const categoryTabs = elements.categoryTabs
+      if (!categoryTabs) return
+      
+      let html = ''
+      CATEGORIES.forEach(category => {
+        const isActive = category.key === currentCategory
+        html += `
+          <button class="category-tab ${isActive ? 'active' : ''}" 
+                  id="tab${category.key.charAt(0).toUpperCase() + category.key.slice(1)}" 
+                  onclick="switchCategory('${category.key}')">
+            ${category.icon} ${category.name}
+          </button>
+        `
+      })
+      
+      categoryTabs.innerHTML = html
+    }
+    
+    // 更新上传提示
+    function updateUploadHint() {
+      const config = CATEGORY_CONFIG[currentCategory]
+      if (config && elements.uploadHint) {
+        elements.uploadHint.textContent = config.hint
+      }
+    }
+    
+    // 初始化 DOM 元素引用
+    function initElements() {
+      elements.uploadHint = document.getElementById('uploadHint')
+      elements.fileList = document.getElementById('fileList')
+      elements.breadcrumb = document.getElementById('breadcrumb')
+      elements.currentPath = document.getElementById('currentPath')
+      elements.selectAll = document.getElementById('selectAll')
+      elements.batchDeleteBtn = document.getElementById('batchDeleteBtn')
+      elements.alert = document.getElementById('alert')
+      elements.fileInput = document.getElementById('fileInput')
+      elements.folderName = document.getElementById('folderName')
+      elements.uploadZone = document.getElementById('uploadZone')
+      elements.categoryTabs = document.getElementById('categoryTabs')
+    }
+    
+    // 切换分类
+    function switchCategory(category) {
+      currentCategory = category
+      currentFolderPath = ''
+      
+      // 更新标签样式
+      CATEGORIES.forEach(cat => {
+        const tab = document.getElementById(`tab${cat.key.charAt(0).toUpperCase() + cat.key.slice(1)}`)
+        if (tab) {
+          tab.classList.toggle('active', category === cat.key)
+        }
+      })
+      
+      // 更新上传提示
+      updateUploadHint()
+      
+      loadFiles()
+    }
+    
+    // 设置上传区域
+    function setupUploadZone() {
+      elements.uploadZone.addEventListener('click', () => elements.fileInput.click())
+      
+      elements.uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault()
+        elements.uploadZone.classList.add('dragover')
+      })
+      
+      elements.uploadZone.addEventListener('dragleave', () => {
+        elements.uploadZone.classList.remove('dragover')
+      })
+      
+      elements.uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault()
+        elements.uploadZone.classList.remove('dragover')
+        
+        const files = e.dataTransfer.files
+        if (files.length > 0) {
+          elements.fileInput.files = files
+          handleFileSelect({ target: elements.fileInput })
+        }
+      })
+    }
+    
+    // 处理文件选择
+    function handleFileSelect(event) {
+      selectedFile = event.target.files[0]
+      if (selectedFile) {
+        showAlert(`已选择文件: ${selectedFile.name}`, 'success')
+      }
+    }
+    
+    // 上传文件
+    async function uploadFile() {
+      if (!selectedFile) {
+        showAlert('请先选择文件', 'error')
+        return
+      }
+      
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+      formData.append('category', currentCategory)
+      if (currentFolderPath) {
+        formData.append('folder', currentFolderPath)
+      }
+      
+      try {
+        showAlert('正在上传...', 'success')
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        })
+        
+        const data = await response.json()
+        
+        if (response.ok && data.success) {
+          showAlert(data.message, 'success')
+          selectedFile = null
+          elements.fileInput.value = ''
+          loadFiles()
+        } else {
+          showAlert(data.error?.message || '上传失败', 'error')
+        }
+      } catch (error) {
+        showAlert('上传失败: ' + error.message, 'error')
+      }
+    }
+    
+    // 创建文件夹
+    async function createFolder() {
+      const folderName = elements.folderName.value.trim()
+      if (!folderName) {
+        showAlert('请输入文件夹名称', 'error')
+        return
+      }
+      
+      try {
+        const response = await fetch('/api/folder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: currentCategory,
+            folder: currentFolderPath,
+            name: folderName
+          })
+        })
+        
+        const data = await response.json()
+        
+        if (response.ok && data.success) {
+          showAlert(data.message, 'success')
+          elements.folderName.value = ''
+          loadFiles()
+        } else {
+          showAlert(data.error?.message || '创建失败', 'error')
+        }
+      } catch (error) {
+        showAlert('创建失败: ' + error.message, 'error')
+      }
+    }
+    
+    // 加载文件列表
+    async function loadFiles() {
+      elements.fileList.innerHTML = '<div class="loading">加载中...</div>'
+      
+      try {
+        const params = new URLSearchParams({
+          category: currentCategory,
+          folder: currentFolderPath
+        })
+        
+        const response = await fetch(`/api/files?${params}`)
+        const data = await response.json()
+        
+        if (response.ok) {
+          displayFiles(data.files, data.folders)
+          updateBreadcrumb()
+          updateCurrentPath()
+        } else {
+          showAlert(data.error?.message || '加载失败', 'error')
+        }
+      } catch (error) {
+        showAlert('加载失败: ' + error.message, 'error')
+      }
+    }
+    
+    // 显示文件列表
+    function displayFiles(files, folders) {
+      if (folders.length === 0 && files.length === 0) {
+        elements.fileList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <div class="empty-state-text">此文件夹为空</div>
+          </div>
+        `
+        updateBatchDeleteButton()
+        return
+      }
+      
+      let html = ''
+      
+      // 显示文件夹
+      folders.forEach((folder, index) => {
+        const folderId = `folder-${index}`
+        const fullPath = `${currentCategory}/${folder.path}`
+        html += createFolderCard(folder, folderId, fullPath)
+      })
+      
+      // 显示文件
+      files.forEach((file, index) => {
+        const fileId = `file-${index}`
+        html += createFileCard(file, fileId)
+      })
+      
+      elements.fileList.innerHTML = html
+      updateBatchDeleteButton()
+      elements.selectAll.checked = false
+    }
+    
+    // 创建文件夹卡片 HTML
+    function createFolderCard(folder, folderId, fullPath) {
+      return `
+        <div class="file-card folder" data-type="folder" data-path="${fullPath}" data-relative-path="${folder.path}">
+          <input type="checkbox" class="file-checkbox" id="${folderId}" data-path="${fullPath}" data-relative-path="${folder.path}" data-is-folder="true" onchange="updateBatchDeleteButton()">
+          <div class="file-icon" onclick="openFolder('${folder.path}')">📁</div>
+          <div class="file-name" onclick="openFolder('${folder.path}')">${escapeHtml(folder.name)}</div>
+          <div class="file-actions">
+            <button class="btn btn-primary btn-small" onclick="openFolder('${folder.path}')">打开</button>
+            <button class="btn btn-danger btn-small" onclick="deleteItem('${folder.path}', true, '${escapeHtml(folder.name)}')">删除</button>
+          </div>
+        </div>
+      `
+    }
+    
+    // 创建文件卡片 HTML
+    function createFileCard(file, fileId) {
+      const size = formatFileSize(file.size)
+      const modified = new Date(file.modified).toLocaleDateString('zh-CN')
+      const isImage = isImageFile(file.name)
+      const isAudio = isAudioFile(file.name)
+      const isVideo = isVideoFile(file.name)
+      const fileUrl = `/${file.path}`
+      
+      let cardClass = 'file-card'
+      let iconHtml = ''
+      let previewButton = ''
+      
+      if (isImage) {
+        if (currentCategory === 'image' || currentCategory === 'other') {
+          cardClass = 'file-card image-card'
+          iconHtml = `<img src="${fileUrl}" alt="${escapeHtml(file.name)}" onclick="previewMedia('${fileUrl}', 'image', '${escapeHtml(file.name)}')" loading="lazy">`
+          previewButton = `<button class="btn btn-secondary btn-small" onclick="previewMedia('${fileUrl}', 'image', '${escapeHtml(file.name)}')">预览</button>`
+        } else {
+          iconHtml = getFileIcon(file.name)
+          previewButton = `<button class="btn btn-secondary btn-small" onclick="previewMedia('${fileUrl}', 'image', '${escapeHtml(file.name)}')">预览</button>`
+        }
+      } else if (isAudio) {
+        if (currentCategory === 'audio' || currentCategory === 'other') {
+          cardClass = 'file-card audio-card'
+          iconHtml = `<audio controls preload="metadata" style="width: 100%;">
+            <source src="${fileUrl}" type="audio/mpeg">
+            <source src="${fileUrl}" type="audio/wav">
+            <source src="${fileUrl}" type="audio/ogg">
+            您的浏览器不支持音频播放
+          </audio>`
+        } else {
+          iconHtml = getFileIcon(file.name)
+        }
+      } else if (isVideo) {
+        if (currentCategory === 'video' || currentCategory === 'other') {
+          cardClass = 'file-card video-card'
+          iconHtml = `<video controls preload="metadata" style="width: 100%; height: 100%; max-height: 130px; object-fit: contain;">
+            <source src="${fileUrl}" type="video/mp4">
+            <source src="${fileUrl}" type="video/webm">
+            <source src="${fileUrl}" type="video/ogg">
+            您的浏览器不支持视频播放
+          </video>`
+        } else {
+          iconHtml = getFileIcon(file.name)
+        }
+      } else {
+        iconHtml = getFileIcon(file.name)
+      }
+      
+      return `
+        <div class="${cardClass}" data-type="file" data-path="${file.path}">
+          <input type="checkbox" class="file-checkbox" id="${fileId}" data-path="${file.path}" data-is-folder="false" onchange="updateBatchDeleteButton()">
+          <div class="file-icon">${iconHtml}</div>
+          <div class="file-name">${escapeHtml(file.name)}</div>
+          <div class="file-info">${size}<br>${modified}</div>
+          <div class="file-actions">
+            <button class="btn btn-primary btn-small" onclick="downloadFile('${file.path}')">下载</button>
+            ${previewButton}
+            <button class="btn btn-danger btn-small" onclick="deleteItem('${file.path}', false, '${escapeHtml(file.name)}')">删除</button>
+          </div>
+        </div>
+      `
+    }
+    
+    // 全选/取消全选
+    function toggleSelectAll() {
+      const checkboxes = document.querySelectorAll('.file-checkbox')
+      const fileCards = document.querySelectorAll('.file-card')
+      
+      checkboxes.forEach((checkbox, index) => {
+        checkbox.checked = elements.selectAll.checked
+        if (elements.selectAll.checked) {
+          fileCards[index]?.classList.add('selected')
+        } else {
+          fileCards[index]?.classList.remove('selected')
+        }
+      })
+      
+      updateBatchDeleteButton()
+    }
+    
+    // 更新批量删除按钮显示
+    function updateBatchDeleteButton() {
+      const checkboxes = document.querySelectorAll('.file-checkbox:checked')
+      
+      if (checkboxes.length > 0) {
+        elements.batchDeleteBtn.style.display = 'inline-flex'
+        elements.batchDeleteBtn.innerHTML = `<span>🗑️</span> 批量删除 (${checkboxes.length})`
+      } else {
+        elements.batchDeleteBtn.style.display = 'none'
+      }
+      
+      // 更新文件卡片的选中状态
+      document.querySelectorAll('.file-checkbox').forEach(checkbox => {
+        const card = checkbox.closest('.file-card')
+        if (checkbox.checked) {
+          card?.classList.add('selected')
+        } else {
+          card?.classList.remove('selected')
+        }
+      })
+    }
+    
+    // 批量删除
+    async function batchDelete() {
+      const checkboxes = document.querySelectorAll('.file-checkbox:checked')
+      if (checkboxes.length === 0) {
+        showAlert('请先选择要删除的项目', 'error')
+        return
+      }
+      
+      const items = Array.from(checkboxes).map(cb => ({
+        path: cb.dataset.path,
+        relativePath: cb.dataset.relativePath || cb.dataset.path,
+        isFolder: cb.dataset.isFolder === 'true',
+        name: cb.closest('.file-card').querySelector('.file-name').textContent
+      }))
+      
+      const folders = items.filter(item => item.isFolder)
+      const files = items.filter(item => !item.isFolder)
+      
+      let confirmMessage = `确定要删除选中的 ${items.length} 个项目吗？\n\n`
+      if (folders.length > 0) confirmMessage += `文件夹: ${folders.length} 个\n`
+      if (files.length > 0) confirmMessage += `文件: ${files.length} 个\n`
+      confirmMessage += '\n此操作无法撤销！'
+      
+      if (!confirm(confirmMessage)) return
+      
+      // 检查文件夹是否包含内容
+      for (const folder of folders) {
+        try {
+          const response = await fetch(`/api/folder/check/${folder.path}`)
+          const data = await response.json()
+          
+          if (response.ok && data.hasContent) {
+            if (!confirm(`文件夹 "${folder.name}" 包含 ${data.itemCount} 个项目，确定要删除吗？`)) {
+              return
+            }
+          }
+        } catch (error) {
+          console.error('检查文件夹失败:', error)
+        }
+      }
+      
+      // 执行批量删除
+      let successCount = 0
+      let failCount = 0
+      
+      for (const item of items) {
+        try {
+          const response = await fetch(`/api/file/${item.path}`, { method: 'DELETE' })
+          const data = await response.json()
+          if (response.ok && data.success) {
+            successCount++
+          } else {
+            failCount++
+          }
+        } catch (error) {
+          failCount++
+        }
+      }
+      
+      if (successCount > 0) {
+        showAlert(`成功删除 ${successCount} 个项目${failCount > 0 ? `，${failCount} 个失败` : ''}`, 'success')
+        loadFiles()
+      } else {
+        showAlert('删除失败', 'error')
+      }
+    }
+    
+    // 文件类型判断
+    function isImageFile(filename) {
+      const ext = filename.split('.').pop().toLowerCase()
+      return FILE_EXTENSIONS.image && FILE_EXTENSIONS.image.includes(ext)
+    }
+    
+    function isAudioFile(filename) {
+      const ext = filename.split('.').pop().toLowerCase()
+      return FILE_EXTENSIONS.audio && FILE_EXTENSIONS.audio.includes(ext)
+    }
+    
+    function isVideoFile(filename) {
+      const ext = filename.split('.').pop().toLowerCase()
+      return FILE_EXTENSIONS.video && FILE_EXTENSIONS.video.includes(ext)
+    }
+    
+    // 检查文件是否属于指定分类
+    function isFileInCategory(filename, categoryKey) {
+      const ext = filename.split('.').pop().toLowerCase()
+      const extensions = FILE_EXTENSIONS[categoryKey]
+      if (!extensions || extensions.length === 0) {
+        // 如果没有扩展名限制（如 other），允许任何文件
+        return true
+      }
+      return extensions.includes(ext)
+    }
+    
+    // 获取文件图标
+    function getFileIcon(filename) {
+      const ext = filename.split('.').pop().toLowerCase()
+      // 检查每个分类
+      for (const category of CATEGORIES) {
+        if (category.extensions && category.extensions.includes(ext)) {
+          return category.icon
+        }
+      }
+      return '📄'
+    }
+    
+    // 预览媒体文件
+    function previewMedia(fileUrl, mediaType, fileName) {
+      const modal = document.getElementById('mediaPreviewModal')
+      const img = document.getElementById('previewImage')
+      const audio = document.getElementById('previewAudio')
+      const video = document.getElementById('previewVideo')
+      const info = document.getElementById('previewInfo')
+      
+      // 隐藏所有媒体元素
+      img.style.display = 'none'
+      audio.style.display = 'none'
+      video.style.display = 'none'
+      
+      // 停止播放
+      audio.pause()
+      audio.src = ''
+      video.pause()
+      video.src = ''
+      
+      // 根据类型显示对应的媒体元素
+      if (mediaType === 'image') {
+        img.src = fileUrl
+        img.style.display = 'block'
+      } else if (mediaType === 'audio') {
+        audio.src = fileUrl
+        audio.style.display = 'block'
+      } else if (mediaType === 'video') {
+        video.src = fileUrl
+        video.style.display = 'block'
+      }
+      
+      info.textContent = fileName
+      modal.classList.add('show')
+      document.body.style.overflow = 'hidden'
+    }
+    
+    // 关闭媒体预览
+    function closeMediaPreview() {
+      const modal = document.getElementById('mediaPreviewModal')
+      const img = document.getElementById('previewImage')
+      const audio = document.getElementById('previewAudio')
+      const video = document.getElementById('previewVideo')
+      
+      modal.classList.remove('show')
+      audio.pause()
+      video.pause()
+      document.body.style.overflow = ''
+      
+      setTimeout(() => {
+        img.src = ''
+        img.style.display = 'none'
+        audio.src = ''
+        audio.style.display = 'none'
+        video.src = ''
+        video.style.display = 'none'
+      }, 300)
+    }
+    
+    // 键盘ESC关闭预览
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMediaPreview()
+    })
+    
+    // 兼容旧函数名
+    function previewImage(imageUrl, imageName) {
+      previewMedia(imageUrl, 'image', imageName)
+    }
+    
+    function closeImagePreview() {
+      closeMediaPreview()
+    }
+    
+    // 格式化文件大小
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 B'
+      const k = 1024
+      const sizes = ['B', 'KB', 'MB', 'GB']
+      const i = Math.floor(Math.log(bytes) / Math.log(k))
+      return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+    }
+    
+    // 打开文件夹
+    function openFolder(folderPath) {
+      currentFolderPath = folderPath
+      loadFiles()
+    }
+    
+    // 更新面包屑导航
+    function updateBreadcrumb() {
+      const parts = currentFolderPath ? currentFolderPath.split('/') : []
+      const config = CATEGORY_CONFIG[currentCategory]
+      
+      if (!config) return
+      
+      let html = `<span class="breadcrumb-item" onclick="goToFolder('')">${config.icon} ${config.name}</span>`
+      
+      let currentPath = ''
+      parts.forEach((part) => {
+        currentPath += (currentPath ? '/' : '') + part
+        html += `<span class="breadcrumb-separator">/</span>`
+        html += `<span class="breadcrumb-item" onclick="goToFolder('${currentPath}')">${escapeHtml(part)}</span>`
+      })
+      
+      elements.breadcrumb.innerHTML = html
+    }
+    
+    // 导航到文件夹
+    function goToFolder(folderPath) {
+      currentFolderPath = folderPath
+      loadFiles()
+    }
+    
+    // 更新当前路径显示
+    function updateCurrentPath() {
+      elements.currentPath.textContent = currentFolderPath || '根目录'
+    }
+    
+    // 下载文件
+    function downloadFile(filePath) {
+      window.open(`/api/download/${filePath}`, '_blank')
+    }
+    
+    // 删除文件或文件夹
+    async function deleteItem(itemPath, isFolder, itemName = '') {
+      const itemType = isFolder ? '文件夹' : '文件'
+      const displayName = itemName || itemType
+      
+      // 如果是文件夹，先检查是否包含内容
+      if (isFolder) {
+        const fullPath = `${currentCategory}/${itemPath}`
+        try {
+          const checkResponse = await fetch(`/api/folder/check/${fullPath}`)
+          const checkData = await checkResponse.json()
+          
+          if (checkResponse.ok && checkData.hasContent) {
+            if (!confirm(`文件夹 "${displayName}" 包含 ${checkData.itemCount} 个项目，确定要删除吗？\n\n此操作将删除文件夹及其所有内容，无法撤销！`)) {
+              return
+            }
+          } else {
+            if (!confirm(`确定要删除文件夹 "${displayName}" 吗？\n\n此操作无法撤销！`)) {
+              return
+            }
+          }
+        } catch (error) {
+          if (!confirm(`确定要删除${itemType} "${displayName}" 吗？\n\n此操作无法撤销！`)) {
+            return
+          }
+        }
+      } else {
+        if (!confirm(`确定要删除文件 "${displayName}" 吗？\n\n此操作无法撤销！`)) {
+          return
+        }
+      }
+      
+      try {
+        const fullPath = isFolder ? `${currentCategory}/${itemPath}` : itemPath
+        const response = await fetch(`/api/file/${fullPath}`, { method: 'DELETE' })
+        const data = await response.json()
+        
+        if (response.ok && data.success) {
+          showAlert(data.message, 'success')
+          loadFiles()
+        } else {
+          showAlert(data.error?.message || '删除失败', 'error')
+        }
+      } catch (error) {
+        showAlert('删除失败: ' + error.message, 'error')
+      }
+    }
+    
+    // 显示提示信息
+    function showAlert(message, type) {
+      elements.alert.textContent = message
+      elements.alert.className = `alert alert-${type} show`
+      
+      setTimeout(() => {
+        elements.alert.classList.remove('show')
+      }, 3000)
+    }
+    
+    // HTML 转义
+    function escapeHtml(text) {
+      const div = document.createElement('div')
+      div.textContent = text
+      return div.innerHTML
+    }
+    
+    // 显示添加分类表单
+    function showAddCategoryForm() {
+      const form = document.getElementById('addCategoryForm')
+      if (form) {
+        form.style.display = 'block'
+        // 清空表单
+        document.getElementById('categoryKey').value = ''
+        document.getElementById('categoryName').value = ''
+        document.getElementById('categoryIcon').value = ''
+        document.getElementById('categoryHint').value = ''
+        document.getElementById('categoryExtensions').value = ''
+      }
+    }
+    
+    // 隐藏添加分类表单
+    function hideAddCategoryForm() {
+      const form = document.getElementById('addCategoryForm')
+      if (form) {
+        form.style.display = 'none'
+      }
+    }
+    
+    // 添加新分类
+    async function addCategory() {
+      const key = document.getElementById('categoryKey').value.trim()
+      const name = document.getElementById('categoryName').value.trim()
+      const icon = document.getElementById('categoryIcon').value.trim()
+      const hint = document.getElementById('categoryHint').value.trim()
+      const extensionsInput = document.getElementById('categoryExtensions').value.trim()
+      
+      // 验证必填字段
+      if (!key) {
+        showAlert('请输入分类键（英文）', 'error')
+        return
+      }
+      
+      if (!name) {
+        showAlert('请输入分类名称', 'error')
+        return
+      }
+      
+      // 验证分类键格式（只允许字母、数字、下划线、连字符）
+      if (!/^[a-z0-9_-]+$/i.test(key)) {
+        showAlert('分类键只能包含字母、数字、下划线和连字符', 'error')
+        return
+      }
+      
+      // 检查分类键是否已存在
+      if (CATEGORIES.some(cat => cat.key === key.toLowerCase())) {
+        showAlert('该分类键已存在', 'error')
+        return
+      }
+      
+      // 处理扩展名
+      const extensions = extensionsInput 
+        ? extensionsInput.split(',').map(ext => ext.trim().toLowerCase()).filter(ext => ext)
+        : []
+      
+      try {
+        showAlert('正在添加分类...', 'success')
+        
+        const response = await fetch('/api/category', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            key: key.toLowerCase(),
+            name: name,
+            icon: icon || '📁',
+            hint: hint || `支持 ${extensions.length > 0 ? extensions.join(', ').toUpperCase() : '任何类型'} 文件`,
+            extensions: extensions
+          })
+        })
+        
+        const data = await response.json()
+        
+        if (response.ok && data.success) {
+          showAlert(data.message || '分类添加成功', 'success')
+          hideAddCategoryForm()
+          // 重新加载分类列表
+          await loadCategories()
+          // 切换到新添加的分类
+          switchCategory(key.toLowerCase())
+        } else {
+          showAlert(data.error?.message || '添加分类失败', 'error')
+        }
+      } catch (error) {
+        showAlert('添加分类失败: ' + error.message, 'error')
+      }
+    }
+  </script>
+</body>
+</html>
